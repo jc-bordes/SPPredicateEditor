@@ -920,7 +920,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
     var subpredicates=[CPMutableArray array];
 	var indexes=[self subrowIndexesForRow:-1];
 	var index=indexes?[indexes firstIndex]:CPNotFound;
-
+  
 	while(index!=CPNotFound)
     {
     	row=[_model rowAtIndex:index];
