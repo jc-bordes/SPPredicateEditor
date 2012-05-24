@@ -1,0 +1,1 @@
+@STATIC;1.0;u;38;Resources/rule-editor-add-compound.png78;mhtml:Browser.environment/MHTMLData.txt!Resources/rule-editor-add-compound.png
