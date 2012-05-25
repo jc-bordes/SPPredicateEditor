@@ -167,15 +167,10 @@
 		return CPAndPredicateType;
 	
 	var view=[_compoundCriteriaRoot objectAtIndex:0];
-	if(!view||![view isKindOfClass:CPPopUpButton])
+	if(!view||![view isKindOfClass:CPMenuItem])
 		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : invalid compound template view"];
 	
-	var items=[view itemArray];
-	if(!items||![items count])	
-		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : invalid compound template view"];
-	
-	var value=[items objectAtIndex:0];
-	var template=[self mappedTemplateForObject:value];
+	var template=[self mappedTemplateForObject:view];
 	if(!template)
 		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : invalid compound template view"];
 	
