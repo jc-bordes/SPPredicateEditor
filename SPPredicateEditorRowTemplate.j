@@ -665,7 +665,7 @@ CPTransformableAttributeType = 1800;
         switch (type)
         {
             case CPKeyPathExpressionType: title = [exp description];
-                break;
+                break;	
             case CPConstantValueExpressionType: title = [self _displayValueForConstantValue:[exp constantValue]];
                 break;
             default: [CPException raise:CPInvalidArgumentException reason:@"Invalid Expression type " + type];

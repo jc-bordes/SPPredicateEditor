@@ -1,4 +1,4 @@
-@STATIC;1.0;p;19;SPPredicateEditor.jt;31969;@STATIC;1.0;i;14;SPRuleEditor.ji;30;SPPredicateEditorRowTemplate.jt;31895;objj_executeFile("SPRuleEditor.j", YES);
+@STATIC;1.0;p;19;SPPredicateEditor.jt;31703;@STATIC;1.0;i;14;SPRuleEditor.ji;30;SPPredicateEditorRowTemplate.jt;31629;objj_executeFile("SPRuleEditor.j", YES);
 objj_executeFile("SPPredicateEditorRowTemplate.j", YES);
 {var the_class = objj_allocateClassPair(SPRuleEditor, "SPPredicateEditor"),
 meta_class = the_class.isa;class_addIvars(the_class, [new objj_ivar("_rowTemplates"), new objj_ivar("_simpleCriteriaRoot"), new objj_ivar("_compoundCriteriaRoot")]);
@@ -100,13 +100,9 @@ class_addMethods(the_class, [new objj_method(sel_getUid("rowTemplates"), functio
  if(!_compoundCriteriaRoot||!objj_msgSend(_compoundCriteriaRoot, "count"))
   return CPAndPredicateType;
  var view=objj_msgSend(_compoundCriteriaRoot, "objectAtIndex:", 0);
- if(!view||!objj_msgSend(view, "isKindOfClass:", CPPopUpButton))
+ if(!view||!objj_msgSend(view, "isKindOfClass:", CPMenuItem))
   objj_msgSend(CPException, "raise:reason:", CPInternalInconsistencyException, _cmd+" : invalid compound template view");
- var items=objj_msgSend(view, "itemArray");
- if(!items||!objj_msgSend(items, "count"))
-  objj_msgSend(CPException, "raise:reason:", CPInternalInconsistencyException, _cmd+" : invalid compound template view");
- var value=objj_msgSend(items, "objectAtIndex:", 0);
- var template=objj_msgSend(self, "mappedTemplateForObject:", value);
+ var template=objj_msgSend(self, "mappedTemplateForObject:", view);
  if(!template)
   objj_msgSend(CPException, "raise:reason:", CPInternalInconsistencyException, _cmd+" : invalid compound template view");
  var types=objj_msgSend(template, "compoundTypes");
@@ -1641,7 +1637,7 @@ var meta_class = the_class.isa;class_addMethods(the_class, [new objj_method(sel_
 },["void","CPCoder"])]);
 }
 
-p;14;SPRuleEditor.jt;39322;@STATIC;1.0;I;24;Foundation/CPPredicate.jI;20;Foundation/CPArray.jI;25;Foundation/CPDictionary.jI;23;Foundation/CPIndexSet.jI;24;AppKit/CPViewAnimation.jI;15;AppKit/CPView.ji;19;SPRuleEditorModel.ji;18;SPRuleEditorView.ji;23;SPRuleEditorCriterion.jt;39066;objj_executeFile("Foundation/CPPredicate.j", NO);
+p;14;SPRuleEditor.jt;39324;@STATIC;1.0;I;24;Foundation/CPPredicate.jI;20;Foundation/CPArray.jI;25;Foundation/CPDictionary.jI;23;Foundation/CPIndexSet.jI;24;AppKit/CPViewAnimation.jI;15;AppKit/CPView.ji;19;SPRuleEditorModel.ji;18;SPRuleEditorView.ji;23;SPRuleEditorCriterion.jt;39068;objj_executeFile("Foundation/CPPredicate.j", NO);
 objj_executeFile("Foundation/CPArray.j", NO);
 objj_executeFile("Foundation/CPDictionary.j", NO);
 objj_executeFile("Foundation/CPIndexSet.j", NO);
@@ -2023,7 +2019,7 @@ _standardLocalizer = newValue;
 },["void","int"]), new objj_method(sel_getUid("removeRowsAtIndexes:includeSubrows:"), function $SPRuleEditor__removeRowsAtIndexes_includeSubrows_(self, _cmd, rowIndexes, includeSubrows)
 { with(self)
 {
- objj_msgSend(_model, "removeRowsAtIndexes:includeSubrows:", rowIndex, includeSubrows);
+ objj_msgSend(_model, "removeRowsAtIndexes:includeSubrows:", rowIndexes, includeSubrows);
 }
 },["void","CPIndexSet","BOOL"]), new objj_method(sel_getUid("rowClass"), function $SPRuleEditor__rowClass(self, _cmd)
 { with(self)
@@ -3731,7 +3727,7 @@ class_addMethods(meta_class, [new objj_method(sel_getUid("initialize"), function
 },["void"])]);
 }
 
-p;21;SPRuleEditorRowView.jt;41808;@STATIC;1.0;I;21;Foundation/CPObject.jI;15;AppKit/CPView.jI;17;AppKit/CPButton.jI;20;AppKit/CPTextField.jI;15;AppKit/CPMenu.jI;22;AppKit/CPPopUpButton.jI;17;AppKit/CPButton.ji;23;SPRuleEditorCriterion.ji;25;SPRuleEditorPopUpButton.ji;26;SPRuleEditorActionButton.jt;41537;objj_executeFile("Foundation/CPObject.j", NO);
+p;21;SPRuleEditorRowView.jt;41933;@STATIC;1.0;I;21;Foundation/CPObject.jI;15;AppKit/CPView.jI;17;AppKit/CPButton.jI;20;AppKit/CPTextField.jI;15;AppKit/CPMenu.jI;22;AppKit/CPPopUpButton.jI;17;AppKit/CPButton.ji;23;SPRuleEditorCriterion.ji;25;SPRuleEditorPopUpButton.ji;26;SPRuleEditorActionButton.jt;41662;objj_executeFile("Foundation/CPObject.j", NO);
 objj_executeFile("AppKit/CPView.j", NO);
 objj_executeFile("AppKit/CPButton.j", NO);
 objj_executeFile("AppKit/CPTextField.j", NO);
@@ -4133,12 +4129,13 @@ _showDragIndicator = newValue;
   objj_msgSend(criterion, "setSmallSize");
  var height=objj_msgSend(criterion, "isKindOfClass:", CPPopUpButton)?SPRuleEditorRowViewPopUpHeight:SPRuleEditorRowViewCriterionHeight;
     var criterionFrame=objj_msgSend(criterion, "frame");
-    criterionFrame=CGRectMake(
+ var size=CGSizeMake(criterionFrame.size.width,height);
+    objj_msgSend(criterion, "setFrameSize:", size);
+ criterionFrame=objj_msgSend(criterion, "frame");
+    var origin=CGPointMake(
      xOrigin,
-     (_rowHeight-height)/2,
-     criterionFrame.size.width,
-     height);
-    objj_msgSend(criterion, "setFrame:", criterionFrame);
+     (_rowHeight-criterionFrame.size.height)/2);
+ objj_msgSend(criterion, "setFrameOrigin:", origin);
     objj_msgSend(_contentView, "addSubview:", criterion);
 }
 },["void","CPView","CPView"]), new objj_method(sel_getUid("bindCriterionViewItem:"), function $SPRuleEditorRowView__bindCriterionViewItem_(self, _cmd, item)

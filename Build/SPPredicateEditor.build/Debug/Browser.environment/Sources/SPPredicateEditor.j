@@ -1,4 +1,4 @@
-@STATIC;1.0;i;14;SPRuleEditor.ji;30;SPPredicateEditorRowTemplate.jt;31895;objj_executeFile("SPRuleEditor.j", YES);
+@STATIC;1.0;i;14;SPRuleEditor.ji;30;SPPredicateEditorRowTemplate.jt;31629;objj_executeFile("SPRuleEditor.j", YES);
 objj_executeFile("SPPredicateEditorRowTemplate.j", YES);
 {var the_class = objj_allocateClassPair(SPRuleEditor, "SPPredicateEditor"),
 meta_class = the_class.isa;class_addIvars(the_class, [new objj_ivar("_rowTemplates"), new objj_ivar("_simpleCriteriaRoot"), new objj_ivar("_compoundCriteriaRoot")]);
@@ -100,13 +100,9 @@ class_addMethods(the_class, [new objj_method(sel_getUid("rowTemplates"), functio
  if(!_compoundCriteriaRoot||!objj_msgSend(_compoundCriteriaRoot, "count"))
   return CPAndPredicateType;
  var view=objj_msgSend(_compoundCriteriaRoot, "objectAtIndex:", 0);
- if(!view||!objj_msgSend(view, "isKindOfClass:", CPPopUpButton))
+ if(!view||!objj_msgSend(view, "isKindOfClass:", CPMenuItem))
   objj_msgSend(CPException, "raise:reason:", CPInternalInconsistencyException, _cmd+" : invalid compound template view");
- var items=objj_msgSend(view, "itemArray");
- if(!items||!objj_msgSend(items, "count"))
-  objj_msgSend(CPException, "raise:reason:", CPInternalInconsistencyException, _cmd+" : invalid compound template view");
- var value=objj_msgSend(items, "objectAtIndex:", 0);
- var template=objj_msgSend(self, "mappedTemplateForObject:", value);
+ var template=objj_msgSend(self, "mappedTemplateForObject:", view);
  if(!template)
   objj_msgSend(CPException, "raise:reason:", CPInternalInconsistencyException, _cmd+" : invalid compound template view");
  var types=objj_msgSend(template, "compoundTypes");

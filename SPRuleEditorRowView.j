@@ -416,13 +416,15 @@ SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
 		
 	var height=[criterion isKindOfClass:CPPopUpButton]?SPRuleEditorRowViewPopUpHeight:SPRuleEditorRowViewCriterionHeight;
     var criterionFrame=[criterion frame]; 
-    criterionFrame=CGRectMake(
+	var size=CGSizeMake(criterionFrame.size.width,height);
+    [criterion setFrameSize:size];
+	criterionFrame=[criterion frame]; 
+
+    var origin=CGPointMake(
     	xOrigin,
-    	(_rowHeight-height)/2,
-    	criterionFrame.size.width,
-    	height);
-    
-    [criterion setFrame:criterionFrame];
+    	(_rowHeight-criterionFrame.size.height)/2);
+	[criterion setFrameOrigin:origin];
+
     [_contentView addSubview:criterion];
 }
 

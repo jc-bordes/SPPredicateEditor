@@ -1,4 +1,4 @@
-@STATIC;1.0;I;21;Foundation/CPObject.jI;15;AppKit/CPView.jI;17;AppKit/CPButton.jI;20;AppKit/CPTextField.jI;15;AppKit/CPMenu.jI;22;AppKit/CPPopUpButton.jI;17;AppKit/CPButton.ji;23;SPRuleEditorCriterion.ji;25;SPRuleEditorPopUpButton.ji;26;SPRuleEditorActionButton.jt;41537;objj_executeFile("Foundation/CPObject.j", NO);
+@STATIC;1.0;I;21;Foundation/CPObject.jI;15;AppKit/CPView.jI;17;AppKit/CPButton.jI;20;AppKit/CPTextField.jI;15;AppKit/CPMenu.jI;22;AppKit/CPPopUpButton.jI;17;AppKit/CPButton.ji;23;SPRuleEditorCriterion.ji;25;SPRuleEditorPopUpButton.ji;26;SPRuleEditorActionButton.jt;41662;objj_executeFile("Foundation/CPObject.j", NO);
 objj_executeFile("AppKit/CPView.j", NO);
 objj_executeFile("AppKit/CPButton.j", NO);
 objj_executeFile("AppKit/CPTextField.j", NO);
@@ -400,12 +400,13 @@ _showDragIndicator = newValue;
   objj_msgSend(criterion, "setSmallSize");
  var height=objj_msgSend(criterion, "isKindOfClass:", CPPopUpButton)?SPRuleEditorRowViewPopUpHeight:SPRuleEditorRowViewCriterionHeight;
     var criterionFrame=objj_msgSend(criterion, "frame");
-    criterionFrame=CGRectMake(
+ var size=CGSizeMake(criterionFrame.size.width,height);
+    objj_msgSend(criterion, "setFrameSize:", size);
+ criterionFrame=objj_msgSend(criterion, "frame");
+    var origin=CGPointMake(
      xOrigin,
-     (_rowHeight-height)/2,
-     criterionFrame.size.width,
-     height);
-    objj_msgSend(criterion, "setFrame:", criterionFrame);
+     (_rowHeight-criterionFrame.size.height)/2);
+ objj_msgSend(criterion, "setFrameOrigin:", origin);
     objj_msgSend(_contentView, "addSubview:", criterion);
 }
 },["void","CPView","CPView"]), new objj_method(sel_getUid("bindCriterionViewItem:"), function $SPRuleEditorRowView__bindCriterionViewItem_(self, _cmd, item)

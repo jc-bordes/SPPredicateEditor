@@ -580,7 +580,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 */
 - (void)removeRowsAtIndexes:(CPIndexSet)rowIndexes includeSubrows:(BOOL)includeSubrows
 {
-	[_model removeRowsAtIndexes:rowIndex includeSubrows:includeSubrows];
+	[_model removeRowsAtIndexes:rowIndexes includeSubrows:includeSubrows];
 }
 
 /*!

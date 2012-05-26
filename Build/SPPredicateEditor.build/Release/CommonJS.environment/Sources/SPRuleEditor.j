@@ -1,4 +1,4 @@
-@STATIC;1.0;I;24;Foundation/CPPredicate.jI;20;Foundation/CPArray.jI;25;Foundation/CPDictionary.jI;23;Foundation/CPIndexSet.jI;24;AppKit/CPViewAnimation.jI;15;AppKit/CPView.ji;19;SPRuleEditorModel.ji;18;SPRuleEditorView.ji;23;SPRuleEditorCriterion.jt;28841;
+@STATIC;1.0;I;24;Foundation/CPPredicate.jI;20;Foundation/CPArray.jI;25;Foundation/CPDictionary.jI;23;Foundation/CPIndexSet.jI;24;AppKit/CPViewAnimation.jI;15;AppKit/CPView.ji;19;SPRuleEditorModel.ji;18;SPRuleEditorView.ji;23;SPRuleEditorCriterion.jt;28836;
 objj_executeFile("Foundation/CPPredicate.j",NO);
 objj_executeFile("Foundation/CPArray.j",NO);
 objj_executeFile("Foundation/CPDictionary.j",NO);
@@ -326,7 +326,7 @@ objj_msgSend(_model,"removeRowAtIndex:includeSubrows:",_95,NO);
 }
 }),new objj_method(sel_getUid("removeRowsAtIndexes:includeSubrows:"),function(_96,_97,_98,_99){
 with(_96){
-objj_msgSend(_model,"removeRowsAtIndexes:includeSubrows:",rowIndex,_99);
+objj_msgSend(_model,"removeRowsAtIndexes:includeSubrows:",_98,_99);
 }
 }),new objj_method(sel_getUid("rowClass"),function(_9a,_9b){
 with(_9a){
