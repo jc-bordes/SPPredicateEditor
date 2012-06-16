@@ -2,7 +2,7 @@
 
 ## What 
 
-* rewrite of SPRuleEditor and SPPredicateteEditor Cappuccino original classes using an MVC pattern
+* rewrite of CPRuleEditor and CPPredicateteEditor Cappuccino original classes using an MVC pattern
 * works in 4 modes : compound, simple, list and single with drag & drop
 * CPTextField override classes for signed/unsigned integer/float textfields
 * support for predicate options (case insensitive, diacritic insensitive)
