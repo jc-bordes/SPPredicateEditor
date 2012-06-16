@@ -1,5 +1,7 @@
 #SPPredicateEditor
 
+Built and tested with Cappuccino v0.9.6-RC1
+
 ## Install
 
 sudo jake install  
