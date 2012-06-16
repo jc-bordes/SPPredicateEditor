@@ -2,6 +2,9 @@
 
 ## Install
 
+sudo jake install  
+then symlink the library in your project  
+
 ## What 
 
 * rewrite of CPRuleEditor and CPPredicateEditor Cappuccino original classes using an MVC pattern
