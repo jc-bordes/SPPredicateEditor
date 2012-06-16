@@ -1,5 +1,7 @@
 #SPPredicateEditor
 
+## Install
+
 ## What 
 
 * rewrite of CPRuleEditor and CPPredicateEditor Cappuccino original classes using an MVC pattern
@@ -7,7 +9,8 @@
 * CPTextField override classes for signed/unsigned integer/float textfields
 * support for predicate options (case insensitive, diacritic insensitive)
 * extensive ojtest of SPRuleEditorModel.j
-* demos of the components visible here http://dev.globimages.com/capp/ruleeditor and there http://dev.globimages.com/capp/predicateeditor
+* demos of the components available here http://dev.globimages.com/capp/ruleeditor and there http://dev.globimages.com/capp/predicateeditor
+* sources of the demos https://github.com/jc-bordes/SPPredicateEditor-example and https://github.com/jc-bordes/SPRuleEditor-example 
 
 ## How
 
