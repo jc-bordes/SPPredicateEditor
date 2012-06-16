@@ -2,7 +2,7 @@
 
 ## What 
 
-* rewrite of CPRuleEditor and CPPredicateteEditor Cappuccino original classes using an MVC pattern
+* rewrite of CPRuleEditor and CPPredicateEditor Cappuccino original classes using an MVC pattern
 * works in 4 modes : compound, simple, list and single with drag & drop
 * CPTextField override classes for signed/unsigned integer/float textfields
 * support for predicate options (case insensitive, diacritic insensitive)
@@ -17,9 +17,9 @@
 
 * SPRuleEditor exposes a cocoa like API (NSRuleEditor). Its the controller, it creates SPRuleEditorModel and SPRuleEditorView, responds to SPRuleEditorView delegations by calling SPRuleEditorModel and ask its own delegate for how to create a row (ie criteria, see NSRuleEditor docs)
 
-* SPPredicateteEditor (which extends SPRuleEditor) has been rewritten in order to take advantage of the new SPRuleEditor design.
+* SPPredicateEditor (which extends SPRuleEditor) has been rewritten in order to take advantage of the new SPRuleEditor design.
 
-* SPPredicateteEditorRowTemplate has been kept almost unchanged
+* SPPredicateEditorRowTemplate has been kept almost unchanged
 
 ## What's missing (compared to cocoa)
 
