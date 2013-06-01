@@ -432,7 +432,7 @@
     [copy setCriteria:[[CPArray alloc] initWithArray:_criteria copyItems:YES]];
     [copy setSubrows:[[CPArray alloc] initWithArray:_subrows copyItems:YES]];
     [[copy subrows] makeObjectsPerformSelector:@selector(setParent:) withObject:copy];
-    [copy setData:_data copy];
+    [copy setData:[_data copy]];
 
     return copy;
 }

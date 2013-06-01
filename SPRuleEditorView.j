@@ -473,6 +473,7 @@ SPRuleEditorRowViewIndent=30;
 	var size=[self frameSize];
 	size.height=deltaY;
 	[self setFrameSize:size];
+	[[self superview] setFrameSize:size];
 }
 
 -(CGRect)initialFrameForItem:(SPRuleEditorModelItem)item
