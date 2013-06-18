@@ -795,15 +795,12 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 	{
 		var criteria=[aRow criteria];
 		var count=[criteria count];
-		
-		for(var i=index;i<count;i++)
-			[criteria removeObjectAtIndex:index];
 
-		count=[criteria count];
-		if(count)
+		if(count && index>=1)
 		{
-			currentCriterion=criteria[count-1];
+			currentCriterion=criteria[index-1];
 			[currentCriterion setDisplayValue:currentValue];
+			return criteria
 		}
 	}
 	else
