@@ -42,6 +42,8 @@ SPRuleEditorRowsDidChangeNotification   = @"SPRuleEditorRowsDidChangeNotificatio
 
 SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 
+CPNotPredicateModifier = 4;
+
 /*!
     @ingroup appkit
     @class SPRuleEditor
@@ -126,13 +128,6 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 
     [_contentView setDelegate:self];
     [_contentView setModel:_model];
-}
-
-- (void)removeFromSuperview
-{
-	if([self superview])	
-		[[CPNotificationCenter defaultCenter] removeObserver:self];
-	[[CPNotificationCenter defaultCenter] removeObserver:self];
 }
 
 -(void)_contentFrameChanged:(CPNotification)notification
@@ -782,6 +777,25 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 
 -(CPArray)refreshCriteriaForRow:(SPRuleEditorModelItem)aRow rowIndex:(CPInteger)rowIndex rowType:(CPInteger)rowType startingAtIndex:(CPInteger)index currentValueIndex:valueIndex currentValue:(id)currentValue
 {
+	var oldCriteria=[[aRow criteria] copy];
+	var oldCount=[oldCriteria count];
+	var newCriteria=[self _refreshCriteriaForRow: aRow rowIndex: rowIndex rowType: rowType startingAtIndex: index currentValueIndex: valueIndex currentValue: currentValue];	
+
+	if(oldCount && index>=1)
+	{	var i;
+		for(i= index-1; i< oldCount; i++)
+		{	var newClass= [[[newCriteria objectAtIndex: i] displayValue] class];
+			// try to preserve criteria value whenever possible
+			if(newClass!== CPMenuItem && [[[oldCriteria objectAtIndex: i] displayValue] class] === newClass)
+			{	[[newCriteria objectAtIndex: i] setDisplayValue: [[oldCriteria objectAtIndex: i] displayValue] ];
+			}
+		}
+	}
+	return newCriteria;
+}
+
+-(CPArray)_refreshCriteriaForRow:(SPRuleEditorModelItem)aRow rowIndex:(CPInteger)rowIndex rowType:(CPInteger)rowType startingAtIndex:(CPInteger)index currentValueIndex:valueIndex currentValue:(id)currentValue
+{
 	if(!aRow&&index>0)
 		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : startingIndex must be 0 when refreshing criteria from delegate when row is not yet created"];
 	if(aRow&&valueIndex<0)
@@ -795,12 +809,15 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 	{
 		var criteria=[aRow criteria];
 		var count=[criteria count];
+		
+		for(var i=index;i<count;i++)
+			[criteria removeObjectAtIndex:index];
 
-		if(count && index>=1)
+		count=[criteria count];
+		if(count)
 		{
-			currentCriterion=criteria[index-1];
+			currentCriterion=criteria[count-1];
 			[currentCriterion setDisplayValue:currentValue];
-			return criteria
 		}
 	}
 	else
@@ -921,7 +938,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 	while(index!=CPNotFound)
     {
     	row=[_model rowAtIndex:index];
-    	subpredicate=[self predicateForRow:index];
+    	subpredicate=[self predicateForRow: index];
     	if(subpredicate)
 	    	[subpredicates addObject:subpredicate];
     	index=[indexes indexGreaterThanIndex:index];
@@ -1130,6 +1147,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 
 -(void)notifyRowsDidChange:(CPNotification)notification
 {
+
 	[[CPNotificationCenter defaultCenter] postNotificationName:SPRuleEditorRowsDidChangeNotification object:self];
 	if(!_delegate||![_delegate respondsToSelector:@selector(ruleEditorRowsDidChange:)])
 		return;

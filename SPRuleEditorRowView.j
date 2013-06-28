@@ -1,3 +1,4 @@
+
 /*
  * SPRuleEditorRowView.j
  * AppKit
@@ -41,13 +42,14 @@ SPRuleEditorRowViewLeftMargin=10;
 SPRuleEditorRowViewVerticalMargin=4;
 SPRuleEditorRowViewButtonHeight=14;
 SPRuleEditorRowViewButtonSpacing=6;
-SPRuleEditorRowViewCriterionHeight=18;
+SPRuleEditorRowViewCriterionHeight=24;
 SPRuleEditorRowViewPopUpHeight=14;
 SPRuleEditorRowViewCriterionSpacing=10;
 SPRuleEditorRowViewDragIndicatorHeight=3;
 
 SPRuleEditorViewAltKeyDown = @"SPRuleEditorViewAltKeyDown";
 SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
+
 
 @implementation SPRuleEditorRowView : CPView
 {
@@ -64,7 +66,7 @@ SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
 	BOOL 					_showDragIndicator @accessors(property=showDragIndicator);
 	CPImage                 _alternateAddButtonImage; 
 	CPNotificationCenter	_notificationCenter;
-	CPImage 				_alternateAddButtonImage=nil;
+	CPImage 				_alternateAddButtonImage;
 	
 	BOOL 					_frozenActions;
 	BOOL 					_updating;
@@ -198,7 +200,8 @@ SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
 			[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : Invalid SPRuleEditorCriterion"];
 
 		displayValue=[criterion displayValue];
-		if([criterion isStandaloneView])
+
+		if( [criterion isStandaloneView])
 		{
 			previousCriterion=[self addViewForCriterion:criterion withValue:displayValue atIndex:i afterCriterionView:previousCriterion];
 			continue;
@@ -424,14 +427,12 @@ SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
     	xOrigin,
     	(_rowHeight-criterionFrame.size.height)/2);
 	[criterion setFrameOrigin:origin];
-
-    [_contentView addSubview:criterion];
+	[_contentView addSubview: criterion];
 }
 
 -(void)bindCriterionViewItem:(id)item
 {
-	if(!item)
-		return;
+	if(!item) return;
 	
 	if([item isKindOfClass:CPMenuItem])
 	{
@@ -474,7 +475,7 @@ SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
 		view=[_delegate criterionItemCopy:value];
 		[view setHidden:[criterion hidden]];
 		[self addCriterionView:view afterCriterionView:previousCriterion];
-		[self bindCriterionViewItem:view];
+		[self bindCriterionViewItem: view];
 		return view;
 	}
 
@@ -666,7 +667,7 @@ SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
 {
 	if([self superview])
 	{
-		[[CPNotificationCenter defaultCenter] removeObserver:self];
+//		[[CPNotificationCenter defaultCenter] removeObserver: self];
 	}
 	[super removeFromSuperview];
 }
@@ -909,7 +910,6 @@ SPRuleEditorViewAltKeyUp = @"SPRuleEditorViewAltKeyUp";
 		value=sender;
 		criterionIndex=[self indexOfCriterion:sender];
 	}
-	
 	if(criterionIndex==CPNotFound)
 		return;
 
