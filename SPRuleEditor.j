@@ -1287,4 +1287,136 @@ CPNotPredicateModifier = 4;
 
 @end
 
+@implementation SPRuleEditor (KVO)
+- objectValue
+{
+	[self reloadPredicate];
+	return [self predicate];
+}
+
+-(void) setObjectValue: aVal
+{	if(aVal)
+	{	[self setPredicate: aVal];
+	}
+}
+
+- (void)_adjustViewForTitle: myTitle inRow: myRow
+{	var rowView= [_contentView rowViewWithItem: [_model rowAtIndex: myRow]];
+	var subviews=[[rowView contentView] subviews];
+
+	var i, subviewsCount= subviews.length;
+	for (i=0; i < subviewsCount; i++)
+	{	var view=[subviews objectAtIndex: i];
+		if([view isKindOfClass: [CPPopUpButton class]])
+		{	var items=[view itemArray];
+			var j, itemsCount= items.length;
+			for (j=0; j < itemsCount; j++)
+			{
+				if([items[j] title] == myTitle)
+					[view selectItemWithTitle: myTitle ];
+			}
+		}
+	}
+}
+
+- (CPArray)_getTitlesInRow: myRow
+{	var rowView= [_contentView rowViewWithItem: [_model rowAtIndex: myRow]];
+	var subviews=[[rowView contentView] subviews];
+	var ret=[];
+	var i, subviewsCount= subviews.length;
+	for (i=0; i < subviewsCount; i++)
+	{	var view=[subviews objectAtIndex: i];
+		if([view isKindOfClass: [CPPopUpButton class]])
+		{	var items=[view itemArray];
+			[ret addObject: items];
+		}
+	} return ret;
+}
+
+
+- _itemForPredicateComponent:(CPDictionary)component criterion: criterion inRow: myRow
+{	var buttons=[self _getTitlesInRow: myRow];
+	var j, buttonsCount= buttons.length;
+	for (i=0; i < buttonsCount; i++)
+	{	var items=buttons[i];
+		var itemsCount= items.length;
+		for(j=0; j< itemsCount; j++)
+		{	var myparts= [_delegate ruleEditor: self predicatePartsForCriterion: criterion withDisplayValue: items[j] inRow: myRow];
+			if( [myparts objectForKey: SPRuleEditorPredicateComparisonModifier] &&
+					[[myparts objectForKey: SPRuleEditorPredicateComparisonModifier] intValue] === [[component objectForKey: SPRuleEditorPredicateComparisonModifier]  intValue] )
+				return [items[j] title];
+			else if( [myparts objectForKey: SPRuleEditorPredicateCompoundType] &&
+					[[myparts objectForKey: SPRuleEditorPredicateCompoundType] intValue] === [[component objectForKey: SPRuleEditorPredicateCompoundType]  intValue] )
+				return [items[j] title];
+		}
+	} return nil;
+}
+
+- (void)_fixCriteriaRight: crits forPredicate: myPredicate inRow: myRow
+{
+	var count = [crits count];
+
+    for (var i=0; i < count; i++)
+	{	var  currCrit= [crits objectAtIndex:i];
+		if(![currCrit._displayValue isKindOfClass: [CPMenuItem class]])
+			[currCrit._displayValue setObjectValue: [[myPredicate rightExpression] constantValue]];
+	}
+}
+- (void)_fixCriteriaLeft: crits forPredicate: myPredicate inRow: myRow
+{
+	var count = [crits count];
+
+    for (var i=0; i < count; i++)
+	{	var  currCrit= [crits objectAtIndex:i];
+		if([myPredicate isKindOfClass: CPComparisonPredicate])
+		{	var component= @{SPRuleEditorPredicateOperatorType: [CPNumber numberWithInt: [myPredicate predicateOperatorType]],
+							 SPRuleEditorPredicateComparisonModifier: [CPNumber numberWithInt: [myPredicate comparisonPredicateModifier]],
+							 SPRuleEditorPredicateLeftExpression: [myPredicate leftExpression],
+							 SPRuleEditorPredicateRightExpression: [myPredicate rightExpression]
+							};
+			[self _adjustViewForTitle: [[myPredicate leftExpression] description] inRow: myRow];
+			var title=[self _itemForPredicateComponent: component criterion: currCrit inRow: myRow];
+			[self _adjustViewForTitle: title inRow: myRow];
+		} else if( [myPredicate isKindOfClass: CPCompoundPredicate])
+		{	var component= @{SPRuleEditorPredicateCompoundType: [CPNumber numberWithInt: [myPredicate compoundPredicateType]]
+							};
+			var title=[self _itemForPredicateComponent: component criterion: currCrit inRow: myRow];
+			[self _adjustViewForTitle: title inRow: myRow];
+		}
+	}
+}
+
+- (void)_setSubpredicates: predicates forParentIndex: parentIndex
+{	var count = [predicates count];
+	var currentIndex= parentIndex+1;
+    for (var i=0; i < count; i++, currentIndex++)
+    {	var rowType= SPRuleEditorRowTypeSimple;
+        var  subpredicate = [predicates objectAtIndex:i];
+        if ([subpredicate isKindOfClass:[CPCompoundPredicate class]] )
+		{	rowType = SPRuleEditorRowTypeCompound;
+		}
+		var criteria=[self refreshCriteriaForNewRowOfType: rowType atIndex: currentIndex];
+		[self _fixCriteriaRight: criteria forPredicate: subpredicate inRow: currentIndex];
+		[_model insertNewRowAtIndex: currentIndex ofType: rowType withParentRowIndex: parentIndex criteria:criteria];
+		[self _fixCriteriaLeft: criteria forPredicate: subpredicate inRow: currentIndex];
+		if(rowType == SPRuleEditorRowTypeCompound)
+			[self _setSubpredicates: myPredicate._predicates forParentIndex: currentIndex];
+	}
+
+}
+- (void)setPredicate: myPredicate
+{
+	[self _build];
+	var rowType= SPRuleEditorRowTypeSimple;
+	if ([myPredicate isKindOfClass:[CPCompoundPredicate class]] )
+	{	rowType = SPRuleEditorRowTypeCompound;
+		var criteria=[self refreshCriteriaForNewRowOfType: rowType atIndex: 0];
+		[self _fixCriteriaRight: criteria forPredicate: myPredicate  inRow: 0];
+		[_model addNewRowOfType: rowType criteria: criteria];
+		[self _fixCriteriaLeft: criteria forPredicate: myPredicate  inRow: 0];
+		[self _setSubpredicates: myPredicate._predicates forParentIndex: 0];
+	} else [self _setSubpredicates: myPredicate forParentIndex: 0]
+}
+@end
+
 /*! @endcond */
