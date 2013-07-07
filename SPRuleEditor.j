@@ -81,6 +81,7 @@ CPNotPredicateModifier = 4;
     id              	_standardLocalizer @accessors(property=standardLocalizer);
     
     SPRuleEditorView	_contentView;
+	BOOL				_setObjectValueIsMuted;
 }
 
 /*! @cond */
@@ -841,7 +842,7 @@ CPNotPredicateModifier = 4;
 	var nb;
 	var first=YES;
 
-	while((nb=[_delegate ruleEditor:self numberOfChildrenForCriterion:currentCriterionItem withRowType:rowType])>0)
+	while((nb=[_delegate ruleEditor: self numberOfChildrenForCriterion: currentCriterionItem withRowType:rowType])>0)
 	{
 		var items=[CPMutableArray arrayWithCapacity:nb];
 		for(var i=0;i<nb;i++)
@@ -1108,7 +1109,7 @@ CPNotPredicateModifier = 4;
 		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : notification userInfo is missing row"];
 
 	[self didAddRow:row];
-	[self notifyRowsDidChange:notification];
+	[self notifyRowsDidChange: notification];
 }
 
 -(void)notifyRowRemoved:(CPNotification)notification
@@ -1145,8 +1146,14 @@ CPNotPredicateModifier = 4;
 	[self notifyRowsDidChange:notification];
 }
 
+
 -(void)notifyRowsDidChange:(CPNotification)notification
 {
+	if(_setObjectValueIsMuted) return;
+
+	[self willChangeValueForKey: "objectValue"];
+	[self  didChangeValueForKey: "objectValue"];
+	[self _reverseSetBinding];
 
 	[[CPNotificationCenter defaultCenter] postNotificationName:SPRuleEditorRowsDidChangeNotification object:self];
 	if(!_delegate||![_delegate respondsToSelector:@selector(ruleEditorRowsDidChange:)])
@@ -1289,14 +1296,26 @@ CPNotPredicateModifier = 4;
 
 @implementation SPRuleEditor (KVO)
 - objectValue
-{
-	[self reloadPredicate];
+{	[self reloadPredicate];
+	return [[self predicate] predicateFormat];
 	return [self predicate];
 }
 
 -(void) setObjectValue: aVal
-{	if(aVal)
-	{	[self setPredicate: aVal];
+{
+
+	if(!aVal)
+	{
+	_setObjectValueIsMuted=YES;
+		[self _build];
+		[self addRow: self];
+	_setObjectValueIsMuted=NO;
+	} else
+	{	if([aVal isKindOfClass: CPString])
+			aVal= [CPPredicate predicateWithFormat: aVal];
+	_setObjectValueIsMuted=YES;
+		[self setPredicate: aVal];
+	_setObjectValueIsMuted=NO;
 	}
 }
 
@@ -1304,12 +1323,12 @@ CPNotPredicateModifier = 4;
 {	var rowView= [_contentView rowViewWithItem: [_model rowAtIndex: myRow]];
 	var subviews=[[rowView contentView] subviews];
 
-	var i, subviewsCount= subviews.length;
+	var i, subviewsCount= [subviews count];
 	for (i=0; i < subviewsCount; i++)
 	{	var view=[subviews objectAtIndex: i];
 		if([view isKindOfClass: [CPPopUpButton class]])
 		{	var items=[view itemArray];
-			var j, itemsCount= items.length;
+			var j, itemsCount= [items count];
 			for (j=0; j < itemsCount; j++)
 			{
 				if([items[j] title] == myTitle)
@@ -1323,7 +1342,7 @@ CPNotPredicateModifier = 4;
 {	var rowView= [_contentView rowViewWithItem: [_model rowAtIndex: myRow]];
 	var subviews=[[rowView contentView] subviews];
 	var ret=[];
-	var i, subviewsCount= subviews.length;
+	var i, subviewsCount= [subviews count];
 	for (i=0; i < subviewsCount; i++)
 	{	var view=[subviews objectAtIndex: i];
 		if([view isKindOfClass: [CPPopUpButton class]])
@@ -1336,10 +1355,10 @@ CPNotPredicateModifier = 4;
 
 - _itemForPredicateComponent:(CPDictionary)component criterion: criterion inRow: myRow
 {	var buttons=[self _getTitlesInRow: myRow];
-	var j, buttonsCount= buttons.length;
-	for (i=0; i < buttonsCount; i++)
+	var j, buttonsCount= [buttons count];
+	for (var i=0; i < buttonsCount; i++)
 	{	var items=buttons[i];
-		var itemsCount= items.length;
+		var itemsCount= [items count];
 		for(j=0; j< itemsCount; j++)
 		{	var myparts= [_delegate ruleEditor: self predicatePartsForCriterion: criterion withDisplayValue: items[j] inRow: myRow];
 			if( [myparts objectForKey: SPRuleEditorPredicateComparisonModifier] &&
@@ -1353,7 +1372,7 @@ CPNotPredicateModifier = 4;
 }
 
 - (void)_fixCriteriaRight: crits forPredicate: myPredicate inRow: myRow
-{
+{	if(! [myPredicate respondsToSelector:@selector(rightExpression)]) return;
 	var count = [crits count];
 
     for (var i=0; i < count; i++)
@@ -1387,11 +1406,13 @@ CPNotPredicateModifier = 4;
 }
 
 - (void)_setSubpredicates: predicates forParentIndex: parentIndex
-{	var count = [predicates count];
+{
+
+	var count = [predicates count];
 	var currentIndex= parentIndex+1;
     for (var i=0; i < count; i++, currentIndex++)
     {	var rowType= SPRuleEditorRowTypeSimple;
-        var  subpredicate = [predicates objectAtIndex:i];
+		var  subpredicate = [predicates objectAtIndex:i];
         if ([subpredicate isKindOfClass:[CPCompoundPredicate class]] )
 		{	rowType = SPRuleEditorRowTypeCompound;
 		}
@@ -1400,23 +1421,25 @@ CPNotPredicateModifier = 4;
 		[_model insertNewRowAtIndex: currentIndex ofType: rowType withParentRowIndex: parentIndex criteria:criteria];
 		[self _fixCriteriaLeft: criteria forPredicate: subpredicate inRow: currentIndex];
 		if(rowType == SPRuleEditorRowTypeCompound)
-			[self _setSubpredicates: myPredicate._predicates forParentIndex: currentIndex];
+			[self _setSubpredicates: subpredicate._predicates forParentIndex: currentIndex];
 	}
 
 }
 - (void)setPredicate: myPredicate
-{
-	[self _build];
-	var rowType= SPRuleEditorRowTypeSimple;
-	if ([myPredicate isKindOfClass:[CPCompoundPredicate class]] )
-	{	rowType = SPRuleEditorRowTypeCompound;
-		var criteria=[self refreshCriteriaForNewRowOfType: rowType atIndex: 0];
-		[self _fixCriteriaRight: criteria forPredicate: myPredicate  inRow: 0];
-		[_model addNewRowOfType: rowType criteria: criteria];
-		[self _fixCriteriaLeft: criteria forPredicate: myPredicate  inRow: 0];
-		[self _setSubpredicates: myPredicate._predicates forParentIndex: 0];
-	} else [self _setSubpredicates: myPredicate forParentIndex: 0]
+{	[self _build];
+	var rowType= SPRuleEditorRowTypeCompound;
+
+	if (![myPredicate isKindOfClass:[CPCompoundPredicate class]] )
+	{	myPredicate=[[CPCompoundPredicate alloc] initWithType: CPAndPredicateType subpredicates:[myPredicate]];
+	}
+	var criteria=[self refreshCriteriaForNewRowOfType: rowType atIndex: 0];	
+	[self _fixCriteriaRight: criteria forPredicate: myPredicate  inRow: 0];
+	[_model addNewRowOfType: rowType criteria: criteria];
+	[self _fixCriteriaLeft: criteria  forPredicate: myPredicate  inRow: 0];
+	var subpredicates= myPredicate._predicates;
+	if(subpredicates) [self _setSubpredicates: subpredicates  forParentIndex: 0];
 }
+
 @end
 
 /*! @endcond */
