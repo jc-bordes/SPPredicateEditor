@@ -1378,7 +1378,11 @@ CPNotPredicateModifier = 4;
     for (var i=0; i < count; i++)
 	{	var  currCrit= [crits objectAtIndex:i];
 		if(![currCrit._displayValue isKindOfClass: [CPMenuItem class]])
-			[currCrit._displayValue setObjectValue: [[myPredicate rightExpression] constantValue]];
+		{	var mv= [[myPredicate rightExpression] constantValue];
+			if([currCrit._displayValue isKindOfClass:CPTokenField] && ! [mv isKindOfClass:CPArray])
+				mv=mv.split(",");
+			[currCrit._displayValue setObjectValue: mv];
+		}
 	}
 }
 - (void)_fixCriteriaLeft: crits forPredicate: myPredicate inRow: myRow
@@ -1426,7 +1430,11 @@ CPNotPredicateModifier = 4;
 
 }
 - (void)setPredicate: myPredicate
-{	[self _build];
+{
+	if(!_delegate)
+		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : delegate must be set in order to set predicates"];
+
+	[self _build];
 	var rowType= SPRuleEditorRowTypeCompound;
 
 	if (![myPredicate isKindOfClass:[CPCompoundPredicate class]] )
