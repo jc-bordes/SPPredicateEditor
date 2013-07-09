@@ -42,6 +42,8 @@ SPRuleEditorRowsDidChangeNotification   = @"SPRuleEditorRowsDidChangeNotificatio
 
 SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 
+CPNotPredicateModifier = 4;
+
 /*!
     @ingroup appkit
     @class SPRuleEditor
@@ -79,6 +81,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
     id              	_standardLocalizer @accessors(property=standardLocalizer);
     
     SPRuleEditorView	_contentView;
+	BOOL				_setObjectValueIsMuted;
 }
 
 /*! @cond */
@@ -126,13 +129,6 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 
     [_contentView setDelegate:self];
     [_contentView setModel:_model];
-}
-
-- (void)removeFromSuperview
-{
-	if([self superview])	
-		[[CPNotificationCenter defaultCenter] removeObserver:self];
-	[[CPNotificationCenter defaultCenter] removeObserver:self];
 }
 
 -(void)_contentFrameChanged:(CPNotification)notification
@@ -782,6 +778,25 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 
 -(CPArray)refreshCriteriaForRow:(SPRuleEditorModelItem)aRow rowIndex:(CPInteger)rowIndex rowType:(CPInteger)rowType startingAtIndex:(CPInteger)index currentValueIndex:valueIndex currentValue:(id)currentValue
 {
+	var oldCriteria=[[aRow criteria] copy];
+	var oldCount=[oldCriteria count];
+	var newCriteria=[self _refreshCriteriaForRow: aRow rowIndex: rowIndex rowType: rowType startingAtIndex: index currentValueIndex: valueIndex currentValue: currentValue];	
+
+	if(oldCount && index>=1)
+	{	var i;
+		for(i= index-1; i< oldCount; i++)
+		{	var newClass= [[[newCriteria objectAtIndex: i] displayValue] class];
+			// try to preserve criteria value whenever possible
+			if(newClass!== CPMenuItem && [[[oldCriteria objectAtIndex: i] displayValue] class] === newClass)
+			{	[[newCriteria objectAtIndex: i] setDisplayValue: [[oldCriteria objectAtIndex: i] displayValue] ];
+			}
+		}
+	}
+	return newCriteria;
+}
+
+-(CPArray)_refreshCriteriaForRow:(SPRuleEditorModelItem)aRow rowIndex:(CPInteger)rowIndex rowType:(CPInteger)rowType startingAtIndex:(CPInteger)index currentValueIndex:valueIndex currentValue:(id)currentValue
+{
 	if(!aRow&&index>0)
 		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : startingIndex must be 0 when refreshing criteria from delegate when row is not yet created"];
 	if(aRow&&valueIndex<0)
@@ -827,7 +842,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 	var nb;
 	var first=YES;
 
-	while((nb=[_delegate ruleEditor:self numberOfChildrenForCriterion:currentCriterionItem withRowType:rowType])>0)
+	while((nb=[_delegate ruleEditor: self numberOfChildrenForCriterion: currentCriterionItem withRowType:rowType])>0)
 	{
 		var items=[CPMutableArray arrayWithCapacity:nb];
 		for(var i=0;i<nb;i++)
@@ -924,7 +939,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 	while(index!=CPNotFound)
     {
     	row=[_model rowAtIndex:index];
-    	subpredicate=[self predicateForRow:index];
+    	subpredicate=[self predicateForRow: index];
     	if(subpredicate)
 	    	[subpredicates addObject:subpredicate];
     	index=[indexes indexGreaterThanIndex:index];
@@ -1094,7 +1109,7 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : notification userInfo is missing row"];
 
 	[self didAddRow:row];
-	[self notifyRowsDidChange:notification];
+	[self notifyRowsDidChange: notification];
 }
 
 -(void)notifyRowRemoved:(CPNotification)notification
@@ -1131,8 +1146,15 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 	[self notifyRowsDidChange:notification];
 }
 
+
 -(void)notifyRowsDidChange:(CPNotification)notification
 {
+	if(_setObjectValueIsMuted) return;
+
+	[self willChangeValueForKey: "objectValue"];
+	[self  didChangeValueForKey: "objectValue"];
+	[self _reverseSetBinding];
+
 	[[CPNotificationCenter defaultCenter] postNotificationName:SPRuleEditorRowsDidChangeNotification object:self];
 	if(!_delegate||![_delegate respondsToSelector:@selector(ruleEditorRowsDidChange:)])
 		return;
@@ -1268,6 +1290,162 @@ SPRuleEditorItemPBoardType  = @"SPRuleEditorItemPBoardType";
 - (void)encodeWithCoder:(id)coder
 {
     [super encodeWithCoder:coder];
+}
+
+@end
+
+@implementation SPRuleEditor (KVO)
+- objectValue
+{	[self reloadPredicate];
+	return [[self predicate] predicateFormat];
+	return [self predicate];
+}
+
+-(void) setObjectValue: aVal
+{
+
+	if(!aVal)
+	{
+	_setObjectValueIsMuted=YES;
+		[self _build];
+		[self addRow: self];
+	_setObjectValueIsMuted=NO;
+	} else
+	{	if([aVal isKindOfClass: CPString])
+			aVal= [CPPredicate predicateWithFormat: aVal];
+	_setObjectValueIsMuted=YES;
+		[self setPredicate: aVal];
+	_setObjectValueIsMuted=NO;
+	}
+}
+
+- (void)_adjustViewForTitle: myTitle inRow: myRow
+{	var rowView= [_contentView rowViewWithItem: [_model rowAtIndex: myRow]];
+	var subviews=[[rowView contentView] subviews];
+
+	var i, subviewsCount= [subviews count];
+	for (i=0; i < subviewsCount; i++)
+	{	var view=[subviews objectAtIndex: i];
+		if([view isKindOfClass: [CPPopUpButton class]])
+		{	var items=[view itemArray];
+			var j, itemsCount= [items count];
+			for (j=0; j < itemsCount; j++)
+			{
+				if([items[j] title] == myTitle)
+					[view selectItemWithTitle: myTitle ];
+			}
+		}
+	}
+}
+
+- (CPArray)_getTitlesInRow: myRow
+{	var rowView= [_contentView rowViewWithItem: [_model rowAtIndex: myRow]];
+	var subviews=[[rowView contentView] subviews];
+	var ret=[];
+	var i, subviewsCount= [subviews count];
+	for (i=0; i < subviewsCount; i++)
+	{	var view=[subviews objectAtIndex: i];
+		if([view isKindOfClass: [CPPopUpButton class]])
+		{	var items=[view itemArray];
+			[ret addObject: items];
+		}
+	} return ret;
+}
+
+
+- _itemForPredicateComponent:(CPDictionary)component criterion: criterion inRow: myRow
+{	var buttons=[self _getTitlesInRow: myRow];
+	var j, buttonsCount= [buttons count];
+	for (var i=0; i < buttonsCount; i++)
+	{	var items=buttons[i];
+		var itemsCount= [items count];
+		for(j=0; j< itemsCount; j++)
+		{	var myparts= [_delegate ruleEditor: self predicatePartsForCriterion: criterion withDisplayValue: items[j] inRow: myRow];
+			if( [myparts objectForKey: SPRuleEditorPredicateComparisonModifier] &&
+					[[myparts objectForKey: SPRuleEditorPredicateComparisonModifier] intValue] === [[component objectForKey: SPRuleEditorPredicateComparisonModifier]  intValue] )
+				return [items[j] title];
+			else if( [myparts objectForKey: SPRuleEditorPredicateCompoundType] &&
+					[[myparts objectForKey: SPRuleEditorPredicateCompoundType] intValue] === [[component objectForKey: SPRuleEditorPredicateCompoundType]  intValue] )
+				return [items[j] title];
+		}
+	} return nil;
+}
+
+- (void)_fixCriteriaRight: crits forPredicate: myPredicate inRow: myRow
+{	if(! [myPredicate respondsToSelector:@selector(rightExpression)]) return;
+	var count = [crits count];
+
+    for (var i=0; i < count; i++)
+	{	var  currCrit= [crits objectAtIndex:i];
+		if(![currCrit._displayValue isKindOfClass: [CPMenuItem class]])
+		{	var mv= [[myPredicate rightExpression] constantValue];
+			if([currCrit._displayValue isKindOfClass:CPTokenField] && ! [mv isKindOfClass:CPArray])
+				mv=mv.split(",");
+			[currCrit._displayValue setObjectValue: mv];
+		}
+	}
+}
+- (void)_fixCriteriaLeft: crits forPredicate: myPredicate inRow: myRow
+{
+	var count = [crits count];
+
+    for (var i=0; i < count; i++)
+	{	var  currCrit= [crits objectAtIndex:i];
+		if([myPredicate isKindOfClass: CPComparisonPredicate])
+		{	var component= @{SPRuleEditorPredicateOperatorType: [CPNumber numberWithInt: [myPredicate predicateOperatorType]],
+							 SPRuleEditorPredicateComparisonModifier: [CPNumber numberWithInt: [myPredicate comparisonPredicateModifier]],
+							 SPRuleEditorPredicateLeftExpression: [myPredicate leftExpression],
+							 SPRuleEditorPredicateRightExpression: [myPredicate rightExpression]
+							};
+			[self _adjustViewForTitle: [[myPredicate leftExpression] description] inRow: myRow];
+			var title=[self _itemForPredicateComponent: component criterion: currCrit inRow: myRow];
+			[self _adjustViewForTitle: title inRow: myRow];
+		} else if( [myPredicate isKindOfClass: CPCompoundPredicate])
+		{	var component= @{SPRuleEditorPredicateCompoundType: [CPNumber numberWithInt: [myPredicate compoundPredicateType]]
+							};
+			var title=[self _itemForPredicateComponent: component criterion: currCrit inRow: myRow];
+			[self _adjustViewForTitle: title inRow: myRow];
+		}
+	}
+}
+
+- (void)_setSubpredicates: predicates forParentIndex: parentIndex
+{
+
+	var count = [predicates count];
+	var currentIndex= parentIndex+1;
+    for (var i=0; i < count; i++, currentIndex++)
+    {	var rowType= SPRuleEditorRowTypeSimple;
+		var  subpredicate = [predicates objectAtIndex:i];
+        if ([subpredicate isKindOfClass:[CPCompoundPredicate class]] )
+		{	rowType = SPRuleEditorRowTypeCompound;
+		}
+		var criteria=[self refreshCriteriaForNewRowOfType: rowType atIndex: currentIndex];
+		[self _fixCriteriaRight: criteria forPredicate: subpredicate inRow: currentIndex];
+		[_model insertNewRowAtIndex: currentIndex ofType: rowType withParentRowIndex: parentIndex criteria:criteria];
+		[self _fixCriteriaLeft: criteria forPredicate: subpredicate inRow: currentIndex];
+		if(rowType == SPRuleEditorRowTypeCompound)
+			[self _setSubpredicates: subpredicate._predicates forParentIndex: currentIndex];
+	}
+
+}
+- (void)setPredicate: myPredicate
+{
+	if(!_delegate)
+		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : delegate must be set in order to set predicates"];
+
+	[self _build];
+	var rowType= SPRuleEditorRowTypeCompound;
+
+	if (![myPredicate isKindOfClass:[CPCompoundPredicate class]] )
+	{	myPredicate=[[CPCompoundPredicate alloc] initWithType: CPAndPredicateType subpredicates:[myPredicate]];
+	}
+	var criteria=[self refreshCriteriaForNewRowOfType: rowType atIndex: 0];	
+	[self _fixCriteriaRight: criteria forPredicate: myPredicate  inRow: 0];
+	[_model addNewRowOfType: rowType criteria: criteria];
+	[self _fixCriteriaLeft: criteria  forPredicate: myPredicate  inRow: 0];
+	var subpredicates= myPredicate._predicates;
+	if(subpredicates) [self _setSubpredicates: subpredicates  forParentIndex: 0];
 }
 
 @end

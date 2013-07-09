@@ -67,9 +67,11 @@ SPRuleEditorRowViewIndent=30;
 
 - (void)removeFromSuperview
 {
+/*
 	if([self superview])	
-		[[CPNotificationCenter defaultCenter] removeObserver:self];
+		[[CPNotificationCenter defaultCenter] removeObserver: self];
 	[[CPNotificationCenter defaultCenter] removeObserver:self];
+*/
 }
 
 #pragma mark Properties
@@ -97,7 +99,7 @@ SPRuleEditorRowViewIndent=30;
     {
 		[notificationCenter addObserver:self selector:@selector(rowAdded:) name:SPRuleEditorModelRowAdded object:_model];
 		[notificationCenter addObserver:self selector:@selector(rowRemoved:) name:SPRuleEditorModelRowRemoved object:_model];
-		[notificationCenter addObserver:self selector:@selector(rowModified:) name:SPRuleEditorModelRowModified object:_model];
+		[notificationCenter addObserver:self selector:@selector(rowModified:) name: SPRuleEditorModelRowModified object:_model];
 		[notificationCenter addObserver:self selector:@selector(nestingModeWillChange:) name:SPRuleEditorModelNestingModeWillChange object:_model];
 		[notificationCenter addObserver:self selector:@selector(nestingModeDidChange:) name:SPRuleEditorModelNestingModeDidChange object:_model];
 		[notificationCenter addObserver:self selector:@selector(allRowsRemoved:) name:SPRuleEditorModelRemovedAllRows object:_model];
@@ -120,8 +122,7 @@ SPRuleEditorRowViewIndent=30;
 	for(var i=0;i<count;i++)	
 	{
 		subview=subviews[i];
-		if(![subview isKindOfClass:SPRuleEditorRowView])
-			continue;
+		if(![subview isKindOfClass:SPRuleEditorRowView]) continue;
 		[subview setDelegate:delegate];
 	}
 }
@@ -186,7 +187,7 @@ SPRuleEditorRowViewIndent=30;
 	for(var i=0;i<count;i++)	
 	{
 		subview=subviews[i];
-		if(![subview isKindOfClass:SPRuleEditorRowView])
+		if(![subview isKindOfClass: SPRuleEditorRowView])
 			continue;
 		view=[subview rowViewWithItem:item];
 		if(view)
@@ -359,12 +360,10 @@ SPRuleEditorRowViewIndent=30;
 		[CPException raise:CPInternalInconsistencyException reason:_cmd+@" : notification userInfo is null"];
 	
 	var row=[userInfo valueForKey:@"row"];
-
-	var view=[self rowViewWithItem:row];
-	if(!view)
-		return;
+	var view=[self rowViewWithItem: row];
+	if(!view) return;
 		
-	[view setItem:row];
+	[view setItem: row];
 	[self setNeedsLayout];
 }
 
@@ -473,6 +472,7 @@ SPRuleEditorRowViewIndent=30;
 	var size=[self frameSize];
 	size.height=deltaY;
 	[self setFrameSize:size];
+	[[self superview] setFrameSize:size];
 }
 
 -(CGRect)initialFrameForItem:(SPRuleEditorModelItem)item
